@@ -125,7 +125,7 @@ const Post = ({ post, onPostUpdate, onPostDelete, isOpenModel }) => {
         <div className="post-user-info">
           <div className="user-avatar">
             {post.user.avatar ? (
-              <img src={`http://localhost:5000${post.user.avatar}`} alt={post.user.name}/>
+              <img src={`https://socialconnect-sn5j.onrender.com${post.user.avatar}`} alt={post.user.name}/>
             ) : (
               <div className="avatar-placeholder">
                 {post.user.name.charAt(0).toUpperCase()}
@@ -155,7 +155,7 @@ const Post = ({ post, onPostUpdate, onPostDelete, isOpenModel }) => {
         <p>{post.content}</p>
         {post.image && (
           <div className="post-image">
-            <img src={`http://localhost:5000${post.image}`} alt="Post content"  />
+            <img src={`https://socialconnect-sn5j.onrender.com${post.image}`} alt="Post content"  />
           </div>
         )}
       </div>

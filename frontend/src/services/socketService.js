@@ -9,7 +9,7 @@ class SocketService {
   // Initialize socket connection
   connect(user) {
     if (!this.socket) {
-      const SOCKET_URL = 'http://localhost:5000';
+      const SOCKET_URL = 'https://socialconnect-sn5j.onrender.com/';
       
       this.socket = io(SOCKET_URL, {
         transports: ['websocket', 'polling'],

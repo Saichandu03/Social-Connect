@@ -135,7 +135,7 @@ const CommentSection = ({ post, onCommentAdded, isOpenModel }) => {
         <div className="comment-input-container">
           <div className="comment-avatar">
             {user.avatar ? (
-              <img src={`http://localhost:5000${user.avatar}`} alt={user.name}  style={{maxWidth : 40, maxHeight : 40, borderRadius : "50%", objectFit : "cover"}}/>
+              <img src={`https://socialconnect-sn5j.onrender.com${user.avatar}`} alt={user.name}  style={{maxWidth : 40, maxHeight : 40, borderRadius : "50%", objectFit : "cover"}}/>
             ) : (
               <div className="avatar-placeholder small">
                 {user.name.charAt(0).toUpperCase()}
@@ -173,7 +173,7 @@ const CommentSection = ({ post, onCommentAdded, isOpenModel }) => {
             <div key={comment._id} className="comment-item">
               <div className="comment-avatar">
                 {comment.user.avatar ? (
-                  <img src={`http://localhost:5000${comment.user.avatar}`} alt={comment.user.name} style={{maxWidth : 40, maxHeight : 40, borderRadius : "50%", objectFit : "cover"}}/>
+                  <img src={`https://socialconnect-sn5j.onrender.com${comment.user.avatar}`} alt={comment.user.name} style={{maxWidth : 40, maxHeight : 40, borderRadius : "50%", objectFit : "cover"}}/>
                 ) : (
                   <div className="avatar-placeholder small">
                     {comment.user.name.charAt(0).toUpperCase()}

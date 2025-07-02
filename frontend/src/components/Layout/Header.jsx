@@ -53,7 +53,7 @@ const Header = () => {
             <div className="user-info">
               <div className="user-avatar small">
                 {user.avatar ? (
-                  <img src={`http://localhost:5000${user.avatar}`} alt={user.name} crossOrigin="anonymous"
+                  <img src={`https://socialconnect-sn5j.onrender.com${user.avatar}`} alt={user.name} crossOrigin="anonymous"
 />
                 ) : (
                   <div className="avatar-placeholder small">

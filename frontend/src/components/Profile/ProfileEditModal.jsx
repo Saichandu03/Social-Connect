@@ -110,7 +110,7 @@ const ProfileEditModal = ({ onClose }) => {
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Preview" />
               ) : user.avatar ? (
-                <img src={`http://localhost:5000${user.avatar}`} alt={user.name}  style={{maxWidth : 100, maxHeight : 100}}/>
+                <img src={`https://socialconnect-sn5j.onrender.com${user.avatar}`} alt={user.name}  style={{maxWidth : 100, maxHeight : 100}}/>
               ) : (
                 <div className="avatar-placeholder large">
                   {user.name.charAt(0).toUpperCase()}

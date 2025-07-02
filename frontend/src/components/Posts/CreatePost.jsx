@@ -92,7 +92,7 @@ const CreatePost = ({ onPostCreated, isOpenModel, setIsOpenModel }) => {
       <div className="create-post-header">
         <div className="user-avatar">
           {user.avatar ? (
-            <img src={`http://localhost:5000${user.avatar}`} alt={user.name} />
+            <img src={`https://socialconnect-sn5j.onrender.com${user.avatar}`} alt={user.name} />
           ) : (
             <div className="avatar-placeholder">
               {user.name.charAt(0).toUpperCase()}
