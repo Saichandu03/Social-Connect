@@ -1,7 +1,7 @@
 # SocialConnect – A Real-Time Social Media App (MERN Stack)
 
 <div align="center">
-  <img src="/frontend/public/logo2.png" alt="SocialConnect Logo" width="250" height="250" />
+  <img src="images/logo.png" alt="SocialConnect Logo" width="250" height="250" />
 </div>
 
 ## Live :- https://social-connect-blush.vercel.app/
