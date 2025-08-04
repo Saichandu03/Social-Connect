@@ -6,7 +6,6 @@ const http = require('http');
 const socketIo = require('socket.io');
 require('dotenv').config();
 
-// Import routes
 const userRoutes = require('./routes/userRoutes');
 const postRoutes = require('./routes/postRoutes');
 
@@ -49,115 +48,137 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/social-media-app';
 
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('MongoDB connected successfully'))
-.catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(MONGODB_URI)
+.then(() => console.log('Database connection established successfully'))
+.catch(err => console.error('Database connection failed:', err));
 
 const connectedUsers = new Map();
 
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+const handleSocketConnection = (socket) => {
+  console.log('New user connected:', socket.id);
 
-  socket.on('join', (userData) => {
+  const handleUserJoin = (userData) => {
     if (userData && userData._id) {
       connectedUsers.set(socket.id, userData);
-      console.log(`User ${userData.name} joined with socket ID: ${socket.id}`);
+      console.log(`${userData.name} joined the chat with socket ID: ${socket.id}`);
       io.emit('onlineUsers', connectedUsers.size);
     }
-  });
+  };
 
-  socket.on('newPost', (postData) => {
-    console.log('New post created:', postData._id);
+  const handleNewPost = (postData) => {
+    console.log('Broadcasting new post:', postData._id);
     socket.broadcast.emit('postCreated', postData);
-  });
+  };
 
-  socket.on('likePost', (data) => {
-    console.log('Post liked:', data.postId);
+  const handlePostLike = (data) => {
+    console.log('Broadcasting post like:', data.postId);
     socket.broadcast.emit('postLiked', data);
-  });
+  };
 
-  socket.on('newComment', (data) => {
-    console.log('New comment on post:', data.postId);
+  const handleNewComment = (data) => {
+    console.log('Broadcasting new comment on post:', data.postId);
     socket.broadcast.emit('commentAdded', data);
-  });
+  };
 
-  socket.on('deletePost', (data) => {
-    console.log('Post deleted:', data.postId);
+  const handlePostDeletion = (data) => {
+    console.log('Broadcasting post deletion:', data.postId);
     socket.broadcast.emit('postDeleted', data);
-  });
+  };
 
-  socket.on('deleteComment', (data) => {
-    console.log('Comment deleted:', data.commentId);
+  const handleCommentDeletion = (data) => {
+    console.log('Broadcasting comment deletion:', data.commentId);
     socket.broadcast.emit('commentDeleted', data);
-  });
+  };
 
-  socket.on('profileUpdated', (userData) => {
-    console.log('Profile updated:', userData._id);
+  const handleProfileUpdate = (userData) => {
+    console.log('Broadcasting profile update for user:', userData._id);
     socket.broadcast.emit('userProfileUpdated', userData);
-  });
+  };
 
-  socket.on('typing', (data) => {
+  const handleTypingIndicator = (data) => {
     socket.broadcast.emit('userTyping', {
       postId: data.postId,
       user: data.user,
       isTyping: data.isTyping
     });
-  });
+  };
 
-  socket.on('disconnect', () => {
+  const handleDisconnection = () => {
     const userData = connectedUsers.get(socket.id);
     if (userData) {
-      console.log(`User ${userData.name} disconnected`);
+      console.log(`${userData.name} has left the chat`);
       connectedUsers.delete(socket.id);
       io.emit('onlineUsers', connectedUsers.size);
     } else {
-      console.log('User disconnected:', socket.id);
+      console.log('Unknown user disconnected:', socket.id);
     }
-  });
+  };
 
-  socket.on('error', (error) => {
-    console.error('Socket error:', error);
-  });
-});
+  const handleSocketError = (error) => {
+    console.error('Socket communication error:', error);
+  };
+
+  socket.on('join', handleUserJoin);
+  socket.on('newPost', handleNewPost);
+  socket.on('likePost', handlePostLike);
+  socket.on('newComment', handleNewComment);
+  socket.on('deletePost', handlePostDeletion);
+  socket.on('deleteComment', handleCommentDeletion);
+  socket.on('profileUpdated', handleProfileUpdate);
+  socket.on('typing', handleTypingIndicator);
+  socket.on('disconnect', handleDisconnection);
+  socket.on('error', handleSocketError);
+};
+
+io.on('connection', handleSocketConnection);
 
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 
-app.get('/api/health', (req, res) => {
+const getHealthStatus = (req, res) => {
   res.json({
-    message: 'Server is running!',
+    message: 'Server is running smoothly!',
     timestamp: new Date().toISOString(),
     connectedUsers: connectedUsers.size
   });
-});
+};
 
-app.use((error, req, res, next) => {
-  console.error('Error:', error);
+app.get('/api/health', getHealthStatus);
+
+const handleGlobalError = (error, req, res, next) => {
+  console.error('Application error occurred:', error);
   res.status(500).json({
-    message: 'Something went wrong!',
+    message: 'Something went wrong on our end!',
     error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
   });
-});
+};
 
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
+const handleNotFound = (req, res) => {
+  res.status(404).json({ message: 'The requested route was not found' });
+};
+
+app.use(handleGlobalError);
+app.use('*', handleNotFound);
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Socket.IO server ready for connections`);
-});
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+const startServer = () => {
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server is running on port ${PORT}`);
+    console.log(`🔌 Socket.IO is ready for real-time connections`);
+  });
+};
+
+const gracefulShutdown = () => {
+  console.log('Received shutdown signal, closing server gracefully...');
   server.close(() => {
-    console.log('Process terminated');
+    console.log('Server has been shut down successfully');
     mongoose.connection.close();
   });
-});
+};
+
+process.on('SIGTERM', gracefulShutdown);
+
+startServer();
 
 module.exports = { app, io };

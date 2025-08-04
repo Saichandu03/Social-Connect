@@ -86,7 +86,7 @@ const ProfileEditModal = ({ onClose }) => {
       updateUser(updatedUser);
 
       // Emit profile update to socket
-      socketService.emitProfileUpdate(updatedUser);
+      socketService.broadcastProfileUpdate(updatedUser);
 
       onClose();
     } catch (error) {

@@ -2,7 +2,6 @@ const User = require('../models/User');
 const multer = require('multer');
 const path = require('path');
 
-// Configure multer for avatar uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/avatars/');
@@ -15,7 +14,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 5 * 1024 * 1024
   },
   fileFilter: function (req, file, cb) {
     if (file.mimetype.startsWith('image/')) {
@@ -26,27 +25,23 @@ const upload = multer({
   }
 });
 
-// Register user
-const registerUser = async (req, res) => {
+const createNewUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Create new user (no password encryption as requested)
     const user = new User({
       name,
       email,
-      password // storing plain text as requested
+      password
     });
 
     await user.save();
 
-    // Return user data without password
     const userData = {
       _id: user._id,
       name: user.name,
@@ -64,7 +59,7 @@ const registerUser = async (req, res) => {
     };
 
     res.status(201).json({
-      message: 'User registered successfully',
+      message: 'Account created successfully',
       user: userData
     });
   } catch (error) {
@@ -72,23 +67,19 @@ const registerUser = async (req, res) => {
   }
 };
 
-// Login user
-const loginUser = async (req, res) => {
+const authenticateUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check password (plain text comparison as requested)
     if (user.password !== password) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Return user data without password
     const userData = {
       _id: user._id,
       name: user.name,
@@ -106,7 +97,7 @@ const loginUser = async (req, res) => {
     };
 
     res.json({
-      message: 'Login successful',
+      message: 'Welcome back!',
       user: userData
     });
   } catch (error) {
@@ -114,8 +105,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Get user profile
-const getUserProfile = async (req, res) => {
+const fetchUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
       .populate('posts')
@@ -131,7 +121,6 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-// Update user profile
 const updateUserProfile = async (req, res) => {
   try {
     const { name, bio, location, website, company, position } = req.body;
@@ -142,7 +131,6 @@ const updateUserProfile = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update fields
     if (name) user.name = name;
     if (bio !== undefined) user.bio = bio;
     if (location !== undefined) user.location = location;
@@ -152,7 +140,6 @@ const updateUserProfile = async (req, res) => {
 
     await user.save();
 
-    // Return updated user data without password
     const userData = {
       _id: user._id,
       name: user.name,
@@ -178,8 +165,7 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-// Upload avatar
-const uploadAvatar = async (req, res) => {
+const handleAvatarUpload = async (req, res) => {
   try {
     const userId = req.params.id;
     
@@ -192,7 +178,6 @@ const uploadAvatar = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update user avatar
     user.avatar = `/uploads/avatars/${req.file.filename}`;
     await user.save();
 
@@ -205,7 +190,6 @@ const uploadAvatar = async (req, res) => {
   }
 };
 
-// Get all users (for search functionality)
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find()
@@ -219,11 +203,11 @@ const getAllUsers = async (req, res) => {
 };
 
 module.exports = {
-  registerUser,
-  loginUser,
-  getUserProfile,
+  createNewUser,
+  authenticateUser,
+  fetchUserProfile,
   updateUserProfile,
-  uploadAvatar,
+  handleAvatarUpload,
   getAllUsers,
   upload
 };

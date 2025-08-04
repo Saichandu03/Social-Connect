@@ -13,16 +13,13 @@ const AppContent = () => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      // Connect to socket when user is authenticated
-      socketService.connect(user);
+      socketService.establishConnection(user);
     } else {
-      // Disconnect socket when user is not authenticated
-      socketService.disconnect();
+      socketService.terminateConnection();
     }
 
-    // Cleanup on unmount
     return () => {
-      socketService.disconnect();
+      socketService.terminateConnection();
     };
   }, [isAuthenticated, user]);
 

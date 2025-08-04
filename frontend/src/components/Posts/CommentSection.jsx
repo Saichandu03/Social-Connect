@@ -29,7 +29,7 @@ const CommentSection = ({ post, onCommentAdded, isOpenModel }) => {
       setNewComment('');
       
       // Emit to socket for real-time updates
-      socketService.emitNewComment({
+      socketService.broadcastNewComment({
         postId: post._id,
         comment: response.post.comments[response.post.comments.length - 1],
         commentsCount: response.post.commentsCount
@@ -65,7 +65,7 @@ const CommentSection = ({ post, onCommentAdded, isOpenModel }) => {
       const response = await postService.deleteComment(post._id, commentId, user._id);
       
       // Emit to socket for real-time updates
-      socketService.emitDeleteComment({
+      socketService.broadcastCommentDeletion({
         postId: post._id,
         commentId,
         commentsCount: response.post.commentsCount
@@ -87,18 +87,17 @@ const CommentSection = ({ post, onCommentAdded, isOpenModel }) => {
     
     if (!isTyping) {
       setIsTyping(true);
-      socketService.emitTyping({
+      socketService.broadcastTypingStatus({
         postId: post._id,
         user: user,
         isTyping: true
       });
     }
     
-    // Clear typing indicator after 2 seconds of no typing
     clearTimeout(window.typingTimeout);
     window.typingTimeout = setTimeout(() => {
       setIsTyping(false);
-      socketService.emitTyping({
+      socketService.broadcastTypingStatus({
         postId: post._id,
         user: user,
         isTyping: false

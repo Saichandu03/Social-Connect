@@ -41,7 +41,7 @@ const Post = ({ post, onPostUpdate, onPostDelete, isOpenModel }) => {
       setLikesCount(response.post.likesCount);
       
       // Emit to socket for real-time updates
-      socketService.emitLikePost({
+      socketService.broadcastPostLike({
         postId: post._id,
         userId: user._id,
         isLiked: newIsLiked,
@@ -79,7 +79,7 @@ const Post = ({ post, onPostUpdate, onPostDelete, isOpenModel }) => {
       await deletePromise;
       
       // Emit to socket for real-time updates
-      socketService.emitDeletePost({
+      socketService.broadcastPostDeletion({
         postId: post._id,
         userId: user._id
       });

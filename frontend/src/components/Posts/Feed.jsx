@@ -12,23 +12,15 @@ const Feed = ({ isOpenModel, setIsOpenModel }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchPosts();
-    setupSocketListeners();
+    loadAllPosts();
+    setupRealtimeListeners();
     
     return () => {
-      // Cleanup socket listeners
-      const socket = socketService.getSocket();
-      if (socket) {
-        socket.off('postCreated');
-        socket.off('postLiked');
-        socket.off('commentAdded');
-        socket.off('postDeleted');
-        socket.off('commentDeleted');
-      }
+      cleanupSocketListeners();
     };
   }, []);
 
-  const fetchPosts = async () => {
+  const loadAllPosts = async () => {
     try {
       setLoading(true);
       const fetchedPosts = await postService.getAllPosts();
@@ -42,18 +34,16 @@ const Feed = ({ isOpenModel, setIsOpenModel }) => {
     }
   };
 
-  const setupSocketListeners = () => {
-    const socket = socketService.getSocket();
+  const setupRealtimeListeners = () => {
+    const socket = socketService.getSocketInstance();
     if (!socket) return;
 
-    // Listen for new posts
-    socket.on('postCreated', (newPost) => {
+    const handleNewPost = (newPost) => {
       setPosts(prevPosts => [newPost, ...prevPosts]);
-      toast.success('New post added!');
-    });
+      toast.success('New post appeared!');
+    };
 
-    // Listen for post likes
-    socket.on('postLiked', (data) => {
+    const handlePostLike = (data) => {
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post._id === data.postId 
@@ -61,10 +51,9 @@ const Feed = ({ isOpenModel, setIsOpenModel }) => {
             : post
         )
       );
-    });
+    };
 
-    // Listen for new comments
-    socket.on('commentAdded', (data) => {
+    const handleNewComment = (data) => {
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post._id === data.postId 
@@ -73,24 +62,39 @@ const Feed = ({ isOpenModel, setIsOpenModel }) => {
         )
       );
       toast.success('New comment added!');
-    });
+    };
 
-    // Listen for post deletions
-    socket.on('postDeleted', (data) => {
+    const handlePostDeletion = (data) => {
       setPosts(prevPosts => prevPosts.filter(post => post._id !== data.postId));
-      toast.success('Post deleted!');
-    });
+      toast.info('A post was removed');
+    };
 
-    // Listen for comment deletions
-    socket.on('commentDeleted', (data) => {
+    const handleCommentDeletion = (data) => {
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post._id === data.postId 
-            ? { ...post, commentsCount: data.commentsCount }
+            ? { ...post, commentsCount: data.commentsCount, comments: post.comments?.filter(comment => comment._id !== data.commentId) || [] }
             : post
         )
       );
-    });
+    };
+
+    socketService.subscribeToEvent('postCreated', handleNewPost);
+    socketService.subscribeToEvent('postLiked', handlePostLike);
+    socketService.subscribeToEvent('commentAdded', handleNewComment);
+    socketService.subscribeToEvent('postDeleted', handlePostDeletion);
+    socketService.subscribeToEvent('commentDeleted', handleCommentDeletion);
+  };
+
+  const cleanupSocketListeners = () => {
+    const socket = socketService.getSocketInstance();
+    if (socket) {
+      socket.off('postCreated');
+      socket.off('postLiked');
+      socket.off('commentAdded');
+      socket.off('postDeleted');
+      socket.off('commentDeleted');
+    }
   };
 
   const handlePostCreated = (newPost) => {
@@ -125,7 +129,7 @@ const Feed = ({ isOpenModel, setIsOpenModel }) => {
       <div className="feed-container">
         <div className="error-container">
           <p>Error loading posts: {error}</p>
-          <button onClick={fetchPosts} className="retry-button">
+          <button onClick={loadAllPosts} className="retry-button">
             Try Again
           </button>
         </div>

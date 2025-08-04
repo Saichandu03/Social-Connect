@@ -74,7 +74,7 @@ const CreatePost = ({ onPostCreated, isOpenModel, setIsOpenModel }) => {
       }
 
       // Emit to socket for real-time updates
-      socketService.emitNewPost(response.post);
+      socketService.broadcastNewPost(response.post);
       
       // Notify parent component
       if (onPostCreated) {

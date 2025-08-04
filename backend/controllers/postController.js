@@ -3,7 +3,6 @@ const User = require('../models/User');
 const multer = require('multer');
 const path = require('path');
 
-// Configure multer for post image uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/posts/');
@@ -16,7 +15,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 10 * 1024 * 1024
   },
   fileFilter: function (req, file, cb) {
     if (file.mimetype.startsWith('image/')) {
@@ -27,8 +26,7 @@ const upload = multer({
   }
 });
 
-// Create a new post
-const createPost = async (req, res) => {
+const createNewPost = async (req, res) => {
   try {
     const { content, userId } = req.body;
 
@@ -49,11 +47,9 @@ const createPost = async (req, res) => {
 
     await post.save();
 
-    // Add post to user's posts array
     user.posts.push(post._id);
     await user.save();
 
-    // Populate user data for response
     await post.populate('user', 'name email avatar');
 
     res.status(201).json({
@@ -65,8 +61,7 @@ const createPost = async (req, res) => {
   }
 };
 
-// Get all posts (feed)
-const getAllPosts = async (req, res) => {
+const fetchAllPosts = async (req, res) => {
   try {
     const posts = await Post.find()
       .populate('user', 'name email avatar')
@@ -80,8 +75,7 @@ const getAllPosts = async (req, res) => {
   }
 };
 
-// Get posts by user
-const getUserPosts = async (req, res) => {
+const fetchUserPosts = async (req, res) => {
   try {
     const userId = req.params.userId;
     
@@ -97,8 +91,7 @@ const getUserPosts = async (req, res) => {
   }
 };
 
-// Get single post
-const getPost = async (req, res) => {
+const fetchSinglePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
       .populate('user', 'name email avatar')
@@ -115,8 +108,7 @@ const getPost = async (req, res) => {
   }
 };
 
-// Delete post - Only post owner can delete
-const deletePost = async (req, res) => {
+const removePost = async (req, res) => {
   try {
     const postId = req.params.id;
     const userId = req.body.userId;
@@ -130,14 +122,12 @@ const deletePost = async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Check if user is the post owner
     if (post.user.toString() !== userId) {
       return res.status(403).json({ message: 'Only the post owner can delete this post' });
     }
 
     await Post.findByIdAndDelete(postId);
 
-    // Remove post from user's posts array
     await User.findByIdAndUpdate(userId, {
       $pull: { posts: postId }
     });
@@ -148,8 +138,7 @@ const deletePost = async (req, res) => {
   }
 };
 
-// Like/Unlike post
-const toggleLike = async (req, res) => {
+const handlePostLike = async (req, res) => {
   try {
     const postId = req.params.id;
     const { userId } = req.body;
@@ -163,20 +152,16 @@ const toggleLike = async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Check if user already liked the post
     const existingLike = post.likes.find(like => like.user.toString() === userId);
 
     if (existingLike) {
-      // Unlike the post
       post.likes = post.likes.filter(like => like.user.toString() !== userId);
     } else {
-      // Like the post
       post.likes.push({ user: userId });
     }
 
     await post.save();
 
-    // Populate the updated post
     await post.populate('user', 'name email avatar');
     await post.populate('comments.user', 'name email avatar');
     await post.populate('likes.user', 'name email avatar');
@@ -190,8 +175,7 @@ const toggleLike = async (req, res) => {
   }
 };
 
-// Add comment to post
-const addComment = async (req, res) => {
+const addCommentToPost = async (req, res) => {
   try {
     const postId = req.params.id;
     const { text, userId } = req.body;
@@ -210,7 +194,6 @@ const addComment = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Add comment
     post.comments.push({
       user: userId,
       text
@@ -218,7 +201,6 @@ const addComment = async (req, res) => {
 
     await post.save();
 
-    // Populate the updated post
     await post.populate('user', 'name email avatar');
     await post.populate('comments.user', 'name email avatar');
     await post.populate('likes.user', 'name email avatar');
@@ -232,8 +214,7 @@ const addComment = async (req, res) => {
   }
 };
 
-// Delete comment - Only comment owner or post owner can delete
-const deleteComment = async (req, res) => {
+const removeCommentFromPost = async (req, res) => {
   try {
     const { postId, commentId } = req.params;
     const { userId } = req.body;
@@ -252,7 +233,6 @@ const deleteComment = async (req, res) => {
       return res.status(404).json({ message: 'Comment not found' });
     }
 
-    // Check if user is the comment owner or the post owner
     const isCommentOwner = comment.user.toString() === userId;
     const isPostOwner = post.user.toString() === userId;
 
@@ -265,7 +245,6 @@ const deleteComment = async (req, res) => {
     post.comments.pull(commentId);
     await post.save();
 
-    // Populate the updated post
     await post.populate('user', 'name email avatar');
     await post.populate('comments.user', 'name email avatar');
     await post.populate('likes.user', 'name email avatar');
@@ -280,14 +259,14 @@ const deleteComment = async (req, res) => {
 };
 
 module.exports = {
-  createPost,
-  getAllPosts,
-  getUserPosts,
-  getPost,
-  deletePost,
-  toggleLike,
-  addComment,
-  deleteComment,
+  createNewPost,
+  fetchAllPosts,
+  fetchUserPosts,
+  fetchSinglePost,
+  removePost,
+  handlePostLike,
+  addCommentToPost,
+  removeCommentFromPost,
   upload
 };
 

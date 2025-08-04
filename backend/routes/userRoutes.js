@@ -1,31 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const {
-  registerUser,
-  loginUser,
-  getUserProfile,
+  createNewUser,
+  authenticateUser,
+  fetchUserProfile,
   updateUserProfile,
-  uploadAvatar,
+  handleAvatarUpload,
   getAllUsers,
   upload
 } = require('../controllers/userController');
 
-
-router.post('/register', registerUser);
-
-router.post('/login', loginUser);
-
-
+router.post('/register', createNewUser);
+router.post('/login', authenticateUser);
 router.get('/', getAllUsers);
-
-
-router.get('/:id', getUserProfile);
-
-
+router.get('/:id', fetchUserProfile);
 router.put('/:id', updateUserProfile);
-
-
-router.post('/:id/avatar', upload.single('avatar'), uploadAvatar);
+router.post('/:id/avatar', upload.single('avatar'), handleAvatarUpload);
 
 module.exports = router;
 
