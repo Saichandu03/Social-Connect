@@ -1,7 +1,7 @@
 # SocialConnect – A Real-Time Social Media App (MERN Stack)
 
 <div align="center">
-  <img src="/frontend/public/logo2.png" alt="SocialConnect Logo" width="250" height="250" />
+  <img src="images/logo.png" alt="SocialConnect Logo" width="250" height="250" />
 </div>
 
 ## Live :- https://social-connect-blush.vercel.app/
@@ -85,4 +85,17 @@ Update your personal info and profile image
 
 ---
 
+
+This is a live project built using MERN stack with full authentication, real-time features, and a clean UI.
+
+> 📌 The source code is private.  
+> If you're interested in the code for collaboration, hiring, or learning, please contact me:
+
+📧 saichanduadapa951@gmail.com  
+📱 LinkedIn: [Saichandu Adapa](https://www.linkedin.com/in/saichandu-adapa-143b41254/)
+
+---
+### 🔐 Why is the code private?
+This is an original project built with weeks of work and real-time functionality.  
+To protect it from unauthorized use, the code is not publicly available.
 
